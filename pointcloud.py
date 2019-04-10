@@ -13,6 +13,7 @@ from matplotlib import animation as anim
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import ndarray
+from transforms import Transforms3D
 import os
 
 
@@ -146,6 +147,9 @@ class PointCloud3D(JointConnections):
         self._num_frames = self._data.shape[0]
         self._num_joints = self._data.shape[1] // 3
         self._connections = self.get_connections(self._num_joints)
+    
+    def transform(self):
+        self._data = Transforms3D.transform(self)._data
     
     def plot(self, title=None, draw_joints=True, draw_connections=True, fps=10,
              hide_plot=False, save_as=None, **kwargs):

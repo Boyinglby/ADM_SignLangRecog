@@ -11,14 +11,14 @@ GitHub: https://github.com/prasunroy/sign-language
 import copy
 import math
 import numpy as np
-from pointcloud import PointCloud3D
 
 
 class Transforms3D(object):
     
     @staticmethod
     def rotate(pointcloud):
-        assert type(pointcloud) is PointCloud3D and not pointcloud._data is None
+        assert pointcloud.__class__.__name__ == 'PointCloud3D' \
+        and not pointcloud._data is None
         
         pc = copy.deepcopy(pointcloud)
         for frame, joints in enumerate(pc._data):
@@ -58,7 +58,8 @@ class Transforms3D(object):
     
     @staticmethod
     def translate(pointcloud):
-        assert type(pointcloud) is PointCloud3D and not pointcloud._data is None
+        assert pointcloud.__class__.__name__ == 'PointCloud3D' \
+        and not pointcloud._data is None
         
         pc = copy.deepcopy(pointcloud)
         for frame, joints in enumerate(pc._data):
@@ -77,5 +78,7 @@ class Transforms3D(object):
     
     @staticmethod
     def transform(pointcloud):
-        assert type(pointcloud) is PointCloud3D and not pointcloud._data is None
+        assert pointcloud.__class__.__name__ == 'PointCloud3D' \
+        and not pointcloud._data is None
+        
         return Transforms3D.translate(Transforms3D.rotate(pointcloud))

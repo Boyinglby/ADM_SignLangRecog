@@ -28,4 +28,4 @@ class RNN(torch.nn.Module):
         return output, hidden
     
     def init_hidden(self):
-        return torch.zeros(1, self.hidden_units)
+        return torch.randn(1, self.hidden_units)

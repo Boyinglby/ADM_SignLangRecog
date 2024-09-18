@@ -13,8 +13,10 @@ from matplotlib import animation as anim
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import ndarray
+import numpy as np
 from transforms import Transforms3D
 import os
+from matplotlib.animation import PillowWriter
 
 
 class JointType(object):
@@ -217,3 +219,15 @@ class PointCloud3D(JointConnections):
                 connection = self._connections[name]
                 plot[0].set_data(xs[frame, connection], zs[frame, connection])
                 plot[0].set_3d_properties(ys[frame, connection])
+
+######################################################
+# Load the data from the text file
+data = []
+with open('afternoon_apurve_1.txt', 'r') as file:
+    for line in file:
+        data.append([float(x) for x in line.split()])
+data = np.array(data)
+skeleton = PointCloud3D(data)
+figure = plt.figure()
+skeleton._init_plots(figure)
+# skeleton.plot(save_as="try.gif",writer=PillowWriter(fps=10))

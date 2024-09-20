@@ -107,4 +107,23 @@ class Preprocess():
         pc._data = np.concatenate((pc._data, cosine_array), axis=1)
         
         return pc
+    
+    @staticmethod
+    def create_velocity(pointcloud):
+    
+        assert pointcloud.__class__.__name__ == 'PointCloud3D' \
+        and not pointcloud._data is None
+        
+        pc = copy.deepcopy(pointcloud)
+        
+        next_frame_data = np.delete(pc._data, (0), axis=0)
+        last_frame = pc._data[-1].reshape(-1,120)
+        next_frame_data = np.append(next_frame_data, last_frame, axis=0)
+        
+        velocity_pf = next_frame_data - pc._data
+        
+        pc._data = np.concatenate((pc._data, velocity_pf), axis=1)
+
+        return pc
+        
         

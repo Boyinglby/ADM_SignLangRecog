@@ -118,6 +118,9 @@ class PointCloud3D(JointConnections):
     
     def add_cosine_feature(self):
         self._data = Preprocess.create_cosine(self)._data
+    
+    def add_velocity_feature(self):
+        self._data = Preprocess.create_velocity(self)._data
         
         
 
@@ -125,12 +128,19 @@ class PointCloud3D(JointConnections):
 # Load the data from the text file
 filename = 'data/bye_mahendra_1.txt'
 bye_data = pd.read_csv(filename, sep=' ').values
-
 ByeExample = PointCloud3D(bye_data)
+
 # rotate transform and translate (spine mid to [0,0,0]) 
 ByeExample.transform()
+
 # plot and example animation of transformed sequential data
 ByeExample.plot_animation("bye_mahendra_1.gif")
+
 # add 60 cosine angle features
 ByeExample.add_cosine_feature()
 assert ByeExample._data.shape[1] == 120, "something wrong with cosine feature"
+
+# add 120 velocity features
+ByeExample.add_velocity_feature()
+assert ByeExample._data.shape[1] == 240, "something wrong with velocity feature"
+data = ByeExample._data

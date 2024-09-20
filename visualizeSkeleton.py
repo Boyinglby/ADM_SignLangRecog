@@ -34,13 +34,18 @@ for connection in connections:
     joint1 = joints[connection[0]]
     joint2 = joints[connection[1]]
     line = ax.plot([joint1[0], joint2[0]], [joint1[2], joint2[2]], [joint1[1], joint2[1]], 'b')
-   
+
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()  
+zlim = ax.get_zlim()     
 def update(frame):
 
     # update the scatter plot:
     joints = get_joints(data[frame])
     ax.clear()
-
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+    ax.set_zlim(zlim)
     for joint in joints:
         scat = ax.scatter(joint[0], joint[2], joint[1], c='r', marker='o')
     for connection in connections:

@@ -10,7 +10,6 @@ import torch
 import torch.utils.data as data
 
 
-
 class PCDataset(data.Dataset):
     
     def __init__(self, root, transform=None, target_transform=None,

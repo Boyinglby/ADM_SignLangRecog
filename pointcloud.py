@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import pandas as pd
-from transforms import Transforms3D
+from transforms import Transforms3D, Preprocess
+
 
 class JointType(object):
     r"""Enumerates all joint types."""
@@ -42,27 +43,6 @@ class JointConnections(JointType):
             num_joints (int): Number of joints in structure. 
         
         """
-        # connections = {
-        #     'HD_NK': (self.JointType_Head, self.JointType_Neck),
-        #     'NK_SM': (self.JointType_Neck, self.JointType_SpineMid),
-        #     'SM_SB': (self.JointType_SpineMid, self.JointType_SpineBase),
-        #     'NK_SL': (self.JointType_Neck, self.JointType_ShoulderLeft),
-        #     'NK_SR': (self.JointType_Neck, self.JointType_ShoulderRight),
-        #     'SB_HL': (self.JointType_SpineBase, self.JointType_HipLeft),
-        #     'SB_HR': (self.JointType_SpineBase, self.JointType_HipRight),
-        #     'SL_EL': (self.JointType_ShoulderLeft, self.JointType_ElbowLeft),
-        #     'EL_WL': (self.JointType_ElbowLeft, self.JointType_WristLeft),
-        #     'WL_HL': (self.JointType_WristLeft, self.JointType_HandLeft),
-        #     'SR_ER': (self.JointType_ShoulderRight, self.JointType_ElbowRight),
-        #     'ER_WR': (self.JointType_ElbowRight, self.JointType_WristRight),
-        #     'WR_HR': (self.JointType_WristRight, self.JointType_HandRight),
-        #     'HL_KL': (self.JointType_HipLeft, self.JointType_KneeLeft),
-        #     'KL_AL': (self.JointType_KneeLeft, self.JointType_AnkleLeft),
-        #     'AL_FL': (self.JointType_AnkleLeft, self.JointType_FootLeft),
-        #     'HR_KR': (self.JointType_HipRight, self.JointType_KneeRight),
-        #     'KR_AR': (self.JointType_KneeRight, self.JointType_AnkleRight),
-        #     'AR_FR': (self.JointType_AnkleRight, self.JointType_FootRight)
-        # }
         connections = [
             (1, 2), (2, 4), (4, 6), (6, 8), # left arm
             (1, 3), (3, 5), (5, 7),  (7, 9),  # right arm
@@ -88,8 +68,7 @@ class PointCloud3D(JointConnections):
             self._num_joints = self._data.shape[1] // 3
             self._connections = self.get_connections(self._num_joints)
     
-    # def transform(self):
-    #     self._data = Transforms3D.transform(self)._data
+
     def get_joints(self, frame_data):
         joints = []
         for i in range(0, len(frame_data), 3):
@@ -136,15 +115,22 @@ class PointCloud3D(JointConnections):
         
     def transform(self):
         self._data = Transforms3D.transform(self)._data
+    
+    def add_cosine_feature(self):
+        self._data = Preprocess.create_cosine(self)._data
+        
         
 
 ######################################################
 # Load the data from the text file
-filename = 'data/bye_mahendra_9.txt'
+filename = 'data/bye_mahendra_1.txt'
 bye_data = pd.read_csv(filename, sep=' ').values
 
 ByeExample = PointCloud3D(bye_data)
 # rotate transform and translate (spine mid to [0,0,0]) 
 ByeExample.transform()
 # plot and example animation of transformed sequential data
-ByeExample.plot_animation("bye_mahendra_9.gif")
+ByeExample.plot_animation("bye_mahendra_1.gif")
+# add 60 cosine angle features
+ByeExample.add_cosine_feature()
+assert ByeExample._data.shape[1] == 120, "something wrong with cosine feature"

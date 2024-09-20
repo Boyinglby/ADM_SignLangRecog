@@ -82,3 +82,29 @@ class Transforms3D(object):
         and not pointcloud._data is None
         
         return Transforms3D.translate(Transforms3D.rotate(pointcloud))
+
+class Preprocess():
+    @staticmethod
+    def create_cosine(pointcloud):
+        assert pointcloud.__class__.__name__ == 'PointCloud3D' \
+        and not pointcloud._data is None
+        
+        pc = copy.deepcopy(pointcloud)
+        cosine_array = []
+        
+        for frame, joints in enumerate(pc._data):
+            # Reshape joints into Nx3 matrix.
+            joints = joints.reshape(-1, 3)
+            for joint in joints:
+                joint_norm = np.linalg.norm(joint)
+                if joint_norm == 0:
+                    cosine = [0, 0, 0]
+                else:
+                    cosine = joint / joint_norm
+                cosine_array.extend(cosine)
+                
+        cosine_array = np.asarray(cosine_array).reshape(-1,60)
+        pc._data = np.concatenate((pc._data, cosine_array), axis=1)
+        
+        return pc
+        

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import pandas as pd
-
+from transforms import Transforms3D
 
 class JointType(object):
     r"""Enumerates all joint types."""
@@ -134,10 +134,17 @@ class PointCloud3D(JointConnections):
         plt.show()
         ani.save(filename, writer="pillow")
         
+    def transform(self):
+        self._data = Transforms3D.transform(self)._data
+        
 
 ######################################################
 # Load the data from the text file
-bye_data = pd.read_csv('bye_mahendra_1.txt', sep=' ').values
+filename = 'data/bye_mahendra_9.txt'
+bye_data = pd.read_csv(filename, sep=' ').values
 
 ByeExample = PointCloud3D(bye_data)
-ByeExample.plot_animation()
+# rotate transform and translate (spine mid to [0,0,0]) 
+ByeExample.transform()
+# plot and example animation of transformed sequential data
+ByeExample.plot_animation("bye_mahendra_9.gif")

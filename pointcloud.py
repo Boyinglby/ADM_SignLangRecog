@@ -124,7 +124,7 @@ class PointCloud3D(JointConnections):
         
         
 
-######################################################
+#####################################################
 # Load the data from the text file
 filename = 'data/bye_mahendra_1.txt'
 bye_data = pd.read_csv(filename, sep=' ').values
@@ -144,3 +144,4 @@ assert ByeExample._data.shape[1] == 120, "something wrong with cosine feature"
 ByeExample.add_velocity_feature()
 assert ByeExample._data.shape[1] == 240, "something wrong with velocity feature"
 data = ByeExample._data
+

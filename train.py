@@ -15,8 +15,8 @@ import time
 # import tqdm
 import torch
 import torch.utils.data as data
+import numpy as np
 from models import RNN
-
 
 class PCDataset(data.Dataset):
     
@@ -38,12 +38,10 @@ class PCDataset(data.Dataset):
         return len(self.files)
     
     def _load_file_to_dataframe(self, index):
-        # Define column names for 20 points with 3D coordinates (p1_x, p1_y, p1_z, ..., p20_x, p20_y, p20_z)
-        coordinates = ['x', 'y', 'z']
-        column_names = [f'p{point}_{coord}' for point in range(1, 21) for coord in coordinates]
+        
         
         # Load the file into a DataFrame
-        self.df = pd.read_csv(self.files[index], delimiter=r'\s+', header=None, names=column_names)
+        self.df = pd.read_csv(self.files[index], delimiter=r'\s+', header=None)
         
         return self.df
     
@@ -57,6 +55,22 @@ class PCDataset(data.Dataset):
         if self.target_transform:
             target = self.target_transform(target)
         return sequence, target
+    
+    def _getmeanstd(self):
+        # Initialize variables to store the sum and count of values
+
+        dfs = []
+        for index in range(len(self.files)):
+            df = self._load_file_to_dataframe(index)
+            dfs.append(df)
+        means = [df.mean() for df in dfs]
+        stds = [df.std() for df in dfs]
+
+        # mean and std over the dataset
+        means = sum(means)/len(dfs)
+        stds = sum(stds)/len(dfs)
+        
+        return means, stds
 
 
 class PCDataLoader(object):
@@ -103,10 +117,12 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler,
         # iterate over training data
         # for sequence, target in tqdm.tqdm(train_loader, unit=' sequence', ncols=80):
         for sequence, target in train_loader:
+
             # copy tensors to device
+            # sequence = torch.squeeze(sequence.to(device))
             sequence = sequence.to(device)
             target = target.to(device)
-            
+            # print("sequence shape", sequence.shape)
             # initialize hidden layer and copy to device
             hidden = model.init_hidden().to(device)
             
@@ -204,6 +220,19 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler,
     model.load_state_dict(best_wts)
     return model, hist
 
+
+# Custom transform to convert to tensor and normalize
+class NormalizeWithStats:
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, sample):
+        
+        output = ((sample - self.mean) / self.std)
+        output = np.array(output, dtype=np.float32)
+        return output
+    
 def train_loo(model, criterion, optimizer, scheduler, DATA_ROOT = './processed_data'):
     data_files = glob.glob(DATA_ROOT + '/*.txt')
     signerlist = sorted({os.path.basename(file).split('_')[1] for file in data_files})
@@ -213,7 +242,8 @@ def train_loo(model, criterion, optimizer, scheduler, DATA_ROOT = './processed_d
     except ValueError:
         pass
     
-    for SIGNER_ID in range(len(signerlist)):     
+    for SIGNER_ID in range(len(signerlist)): 
+    # for SIGNER_ID in range(0,2):
         SAVE_PATH = f'./output/train_{SIGNER_ID}/'
         
         val_signer = [signerlist[SIGNER_ID]]
@@ -223,15 +253,24 @@ def train_loo(model, criterion, optimizer, scheduler, DATA_ROOT = './processed_d
         train_set = PCDataset(DATA_ROOT, exclude_patterns=val_signer)
         val_set = PCDataset(DATA_ROOT, exclude_patterns=signerlist_exlude)
         
+        
+        # normalize in each loo iteration
+        means = train_set._getmeanstd()[0].tolist()
+        stds = train_set._getmeanstd()[1].tolist()
+        transform = NormalizeWithStats(means, stds)
+        
+        train_set.transform = transform
+        val_set.transform = transform
+
+        # train 
         print('-'*80)
-        print(f'[INFO] Training on {len(train_set)} samples from {len(signerlist)} signers')
-        print(f'[INFO] Validating on {len(val_set)} samples from {len(val_signer)} signers')
+        print(f'[INFO] Training on {len(train_set)} samples from {len(signerlist_exlude)} signers')
+        print(f'[INFO] Validating on {len(val_set)} samples from {val_signer} signers')
         
         train_loader = PCDataLoader(train_set)
         val_loader = PCDataLoader(val_set)
-        
         _, history = train(model, train_loader, val_loader, criterion, optimizer, scheduler,
-                  epochs=10, device=None, out_dir=None)
+                  epochs=5, device=None, out_dir=None)
         
         print(f'[INFO] Training finished with best validation accuracy: {max(history["val_acc"]):.4f}')
         print('-'*80)
@@ -277,9 +316,10 @@ def plot_history(history, out_dir=None, ext='png'):
 
 if __name__ == '__main__':
     
-    model = RNN(60, 100, 30)
-    criterion = torch.nn.NLLLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)
+    model = RNN(48, 100, 30)
+    # criterion = torch.nn.NLLLoss()
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
     train_loo(model, criterion, optimizer, scheduler)

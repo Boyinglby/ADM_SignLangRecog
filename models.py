@@ -21,6 +21,9 @@ class RNN(torch.nn.Module):
         self.out = torch.nn.LogSoftmax(dim=1)
     
     def forward(self, inputs, hidden):
+        # print("hidden dtype", hidden.dtype)
+        # print("inputs dtype", inputs.dtype)
+
         concat = torch.cat((inputs, hidden), dim=1)
         hidden = self.i2h(concat)
         output = self.i2o(concat)

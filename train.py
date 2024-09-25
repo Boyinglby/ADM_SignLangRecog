@@ -221,8 +221,11 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler,
     return model, hist
 
 
-# Custom transform to convert to tensor and normalize
+
 class NormalizeWithStats:
+    """
+    Custom transform to convert to tensor and normalize
+    """
     def __init__(self, mean, std):
         self.mean = mean
         self.std = std
@@ -234,6 +237,9 @@ class NormalizeWithStats:
         return output
     
 def train_loo(model, criterion, optimizer, scheduler, DATA_ROOT = './processed_data'):
+    """
+    leave one out cross validation
+    """
     data_files = glob.glob(DATA_ROOT + '/*.txt')
     signerlist = sorted({os.path.basename(file).split('_')[1] for file in data_files})
 

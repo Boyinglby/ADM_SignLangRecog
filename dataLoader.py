@@ -4,9 +4,6 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import re
-import time
-# import tqdm
-import torch
 import torch.utils.data as data
 
 
@@ -29,8 +26,18 @@ class PCDataset(data.Dataset):
     def __len__(self):
         return len(self.files)
     
+    def _load_file_to_dataframe(self, index):
+        # Define column names for 20 points with 3D coordinates (p1_x, p1_y, p1_z, ..., p20_x, p20_y, p20_z)
+        coordinates = ['x', 'y', 'z']
+        column_names = [f'p{point}_{coord}' for point in range(1, 21) for coord in coordinates]
+        
+        # Load the file into a DataFrame
+        self.df = pd.read_csv(self.files[index], delimiter=r'\s+', header=None, names=column_names)
+        
+        return self.df
+    
     def __getitem__(self, index):
-        sequence = pd.read_csv(self.files[index], sep=' ').values
+        sequence = self._load_file_to_dataframe(self, index).values
         sequence = sequence.reshape(len(sequence), 1, -1).astype('float32')
         label = os.path.basename(self.files[index]).split('_')[0]
         target = self.labelmap[label]
@@ -45,9 +52,11 @@ class PCDataLoader(object):
     
     def __new__(self, dataset, shuffle=True):
         return data.DataLoader(dataset, batch_size=1, shuffle=shuffle)
+
     
+
 if __name__ == '__main__':
-    DATA_ROOT = './data'
+    DATA_ROOT = './processed_data'
     SIGNER_ID = 0
     NUM_EPOCH = 1
     SAVE_PATH = f'./output/train_{SIGNER_ID}/'

@@ -39,6 +39,7 @@ class Transforms3D(object):
             # of n on XZ-plane and Z-axis.
             n = n * np.array([1, 0, 1])
             k = np.array([0, 0, -1])
+            
             ratio = np.dot(n, k) / (np.linalg.norm(n) * np.linalg.norm(k))
             theta = np.arccos(ratio)
             theta = math.copysign(theta, n[0])
@@ -83,7 +84,8 @@ class Transforms3D(object):
         
         return Transforms3D.translate(Transforms3D.rotate(pointcloud))
 
-class Preprocess():
+class Feature(object):
+       
     @staticmethod
     def create_cosine(pointcloud):
         assert pointcloud.__class__.__name__ == 'PointCloud3D' \
@@ -103,7 +105,7 @@ class Preprocess():
                     cosine = joint / joint_norm
                 cosine_array.extend(cosine)
                 
-        cosine_array = np.asarray(cosine_array).reshape(-1,60)
+        cosine_array = np.asarray(cosine_array).reshape(-1,pc._data.shape[1])
         pc._data = np.concatenate((pc._data, cosine_array), axis=1)
         
         return pc
@@ -117,7 +119,7 @@ class Preprocess():
         pc = copy.deepcopy(pointcloud)
         
         next_frame_data = np.delete(pc._data, (0), axis=0)
-        last_frame = pc._data[-1].reshape(-1,120)
+        last_frame = pc._data[-1].reshape(-1, pc._data.shape[1])
         next_frame_data = np.append(next_frame_data, last_frame, axis=0)
         
         velocity_pf = next_frame_data - pc._data
@@ -125,5 +127,19 @@ class Preprocess():
         pc._data = np.concatenate((pc._data, velocity_pf), axis=1)
 
         return pc
+    
+    @staticmethod
+    def feature_select(pointcloud):
+        # joint 6,7,8,9 have the highest std
+        assert pointcloud.__class__.__name__ == 'PointCloud3D' \
+        and not pointcloud._data is None
         
+        pc = copy.deepcopy(pointcloud)
+        # pc._data = pc._data['p7_x','p7_y','p7_z',
+        #                     'p8_x','p8_y','p8_z',
+        #                     'p9_x','p9_y','p9_z',
+        #                     'p10_x','p10_y','p10_z']    
+        pc._data = pc._data[:, 3*6:3*(9+1)] # joints 6 - 9 xyz coordinates
         
+    
+        return pc

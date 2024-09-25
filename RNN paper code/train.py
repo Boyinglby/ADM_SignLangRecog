@@ -15,7 +15,7 @@ import os
 import pandas as pd
 import re
 import time
-# import tqdm
+import tqdm
 import torch
 import torch.utils.data as data
 from models import RNN
@@ -232,7 +232,7 @@ def plot_history(history, out_dir=None, ext='png'):
 
 
 if __name__ == '__main__':
-    DATA_ROOT = './data'
+    DATA_ROOT = '../Datasets/ISL30/processed/'
     SIGNER_ID = 0
     NUM_EPOCH = 1
     SAVE_PATH = f'./output/train_{SIGNER_ID}/'

@@ -105,7 +105,6 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler,
         print(f'Epoch {epoch+1}:')
         time.sleep(0.5)
         
-        
         # ---------- training phase ----------
         # set mode to training
         model.train()
@@ -117,17 +116,18 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler,
         # iterate over training data
         # for sequence, target in tqdm.tqdm(train_loader, unit=' sequence', ncols=80):
         for sequence, target in train_loader:
+            
 
             # copy tensors to device
-            # sequence = torch.squeeze(sequence.to(device))
             sequence = sequence.to(device)
             target = target.to(device)
-            # print("sequence shape", sequence.shape)
+
             # initialize hidden layer and copy to device
             hidden = model.init_hidden().to(device)
             
             # forward pass
             for inputs in sequence[0]:
+                
                 output, hidden = model(inputs, hidden)
             # print("output",output)
             loss = criterion(output, target)
@@ -180,6 +180,7 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler,
                 # record statistics
                 running_loss += loss.item() * sequence.size(0)
                 predictions = torch.max(output, 1)[1]
+                
                 correct_hits += torch.sum(predictions == target).item()
         
         # update statistics for current epoch
@@ -220,8 +221,6 @@ def train(model, train_loader, val_loader, criterion, optimizer, scheduler,
     model.load_state_dict(best_wts)
     return model, hist
 
-
-
 class NormalizeWithStats:
     """
     Custom transform to convert to tensor and normalize
@@ -236,20 +235,27 @@ class NormalizeWithStats:
         output = np.array(output, dtype=np.float32)
         return output
     
-def train_loo(model, criterion, optimizer, scheduler, DATA_ROOT = './processed_data'):
+def train_loo(model, criterion, optimizer, scheduler, Epoch_num, DATA_ROOT = './processed_data'):
     """
     leave one out cross validation
     """
     data_files = glob.glob(DATA_ROOT + '/*.txt')
     signerlist = sorted({os.path.basename(file).split('_')[1] for file in data_files})
-
+    model_best = model
+    
+    val_loss_avg = 0
+    val_acc_avg = 0
+    
     try:
         signerlist.remove("")
     except ValueError:
         pass
     
     for SIGNER_ID in range(len(signerlist)): 
-    # for SIGNER_ID in range(0,2):
+        
+        val_loss_loo = 0
+        val_acc_loo = 0
+
         SAVE_PATH = f'./output/train_{SIGNER_ID}/'
         
         val_signer = [signerlist[SIGNER_ID]]
@@ -258,7 +264,6 @@ def train_loo(model, criterion, optimizer, scheduler, DATA_ROOT = './processed_d
 
         train_set = PCDataset(DATA_ROOT, exclude_patterns=val_signer)
         val_set = PCDataset(DATA_ROOT, exclude_patterns=signerlist_exlude)
-        
         
         # normalize in each loo iteration
         means = train_set._getmeanstd()[0].tolist()
@@ -275,14 +280,28 @@ def train_loo(model, criterion, optimizer, scheduler, DATA_ROOT = './processed_d
         
         train_loader = PCDataLoader(train_set)
         val_loader = PCDataLoader(val_set)
-        _, history = train(model, train_loader, val_loader, criterion, optimizer, scheduler,
-                  epochs=5, device=None, out_dir=None)
+        model_best, history = train(model_best, train_loader, val_loader, criterion, optimizer, scheduler,
+                  epochs=Epoch_num, device=None, out_dir=None)
         
-        print(f'[INFO] Training finished with best validation accuracy: {max(history["val_acc"]):.4f}')
+        print(f'[INFO] One LOO Training finished with best validation accuracy: {max(history["val_acc"]):.4f}')
         print('-'*80)
-        
         plot_history(history, SAVE_PATH, 'svg')
         
+        val_loss_loo = sum(history['val_loss'])/Epoch_num
+        val_acc_loo = sum(history['val_acc'])/Epoch_num
+        
+        print(f'[INFO] One LOO Training finished with average validation accuracy: {val_acc_loo:.4f}')
+        print('-'*80)
+        
+        val_loss_avg += val_loss_loo
+        val_acc_avg += val_acc_loo
+        
+    val_loss_avg = val_loss_avg/10
+    val_acc_avg = val_acc_avg/10
+    
+    print(f'10 LOO Training finished with average validation accuracy: {val_acc_avg:.4f}')
+    
+            
         
 def plot_history(history, out_dir=None, ext='png'):
     # plot training and validation loss
@@ -328,4 +347,4 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
-    train_loo(model, criterion, optimizer, scheduler)
+    train_loo(model, criterion, optimizer, scheduler, 5)#, DATA_ROOT = './own/trydata')

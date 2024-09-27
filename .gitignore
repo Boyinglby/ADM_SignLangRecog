@@ -102,3 +102,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# folder contain boying's temp file
+own/
+
+# save train output folder
+output/

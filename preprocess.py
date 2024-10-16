@@ -144,8 +144,47 @@ def load_file_to_dataframe(file_path):
     
     return df
 
-#---------------save processed data as 2700 .txt file in a folder--------------------
-root = '.\data'
+# #---------------save processed data as 2700 .txt file in a folder--------------------
+# root = '.\data'
+# files = sorted(glob.glob(f'{root}/*.txt'))
+# AllGestures = []
+
+# for file in files:
+#     df = load_file_to_dataframe(file)
+#     array = df.values
+
+#     Gesture = PointCloud3D(f"Guesture{os.path.basename(file)}",array)
+#     Gesture.transform()
+#     Gesture.high_std_feature()
+#     Gesture.add_cosine_feature()
+#     Gesture.add_velocity_feature()
+#     AllGestures.append(Gesture)
+#     #Save the array to a text file
+#     np.savetxt(f'./processed_data/{os.path.basename(file)}', 
+#                 Gesture._data, delimiter=" ", fmt='%.7f')
+
+# #--------------discard velocity/frame features--------------------
+# root = '.\data'
+# files = sorted(glob.glob(f'{root}/*.txt'))
+# AllGestures = []
+
+# for file in files:
+#     df = load_file_to_dataframe(file)
+#     array = df.values
+
+#     Gesture = PointCloud3D(f"Guesture{os.path.basename(file)}",array)
+#     Gesture.transform()
+#     Gesture.high_std_feature()
+#     Gesture.add_cosine_feature()
+#     # Gesture.add_velocity_feature()
+#     AllGestures.append(Gesture)
+#     #Save the array to a text file
+#     np.savetxt(f'./own/24features/{os.path.basename(file)}', 
+#                 Gesture._data, delimiter=" ", fmt='%.7f')
+    
+    
+#--------------discard velocity/frame features and try with few data--------------------
+root = './own/trydata'
 files = sorted(glob.glob(f'{root}/*.txt'))
 AllGestures = []
 
@@ -157,8 +196,8 @@ for file in files:
     Gesture.transform()
     Gesture.high_std_feature()
     Gesture.add_cosine_feature()
-    Gesture.add_velocity_feature()
+    # Gesture.add_velocity_feature()
     AllGestures.append(Gesture)
     #Save the array to a text file
-    np.savetxt(f'./processed_data/{os.path.basename(file)}', 
+    np.savetxt(f'./own/24features_4class/{os.path.basename(file)}', 
                 Gesture._data, delimiter=" ", fmt='%.7f')

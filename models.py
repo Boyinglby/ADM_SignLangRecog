@@ -110,7 +110,37 @@ class EarlyStopping:
         model.load_state_dict(self.best_model_state)
 
 
-    
+# LSTM Model
+class LSTMModel(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size, num_layers=1):
+        super(LSTMModel, self).__init__()
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, output_size)
+        self.softmax = nn.LogSoftmax(dim=1)
+    def forward(self, packed_seq):
+
+        packed_output, (hidden, _) = self.lstm(packed_seq)
+        
+        output = self.fc(hidden[-1])
+        output = self.softmax(output)
+        return output
+# output, _ = pad_packed_sequence(packed_output, batch_first=True)
+
+# BiLSTM Model
+class BiLSTMModel(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size, num_layers=1):
+        super(BiLSTMModel, self).__init__()
+        self.bilstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, bidirectional=True)
+        self.fc = nn.Linear(hidden_size * 2, output_size)
+        self.softmax = nn.LogSoftmax(dim=1)
+    def forward(self, packed_seq):
+        
+        packed_output, (hidden, _) = self.bilstm(packed_seq)
+
+        output = self.fc(torch.cat((hidden[-2], hidden[-1]), dim=1))  # Concatenate both directions
+        output = self.softmax(output)
+        return output
+# output, _ = pad_packed_sequence(packed_output, batch_first=True)    
 
 
     

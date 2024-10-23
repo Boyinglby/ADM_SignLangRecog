@@ -367,11 +367,12 @@ def train_loo(model, criterion, optimizer, scheduler, Epoch_num, DATA_ROOT = './
 def plot_history(history, out_dir=None, ext='png'):
     # plot training and validation loss
     plt.figure()
-    for metric, label in zip(['train_loss', 'val_loss'], ['Training', 'Validation']):
+    #for metric, label in zip(['train_loss', 'val_loss'], ['Training', 'Validation']):
+    for metric, label in zip(['train_acc', 'val_acc'], ['Training', 'Validation']):
         plt.plot(range(1, len(history[metric]) + 1), history[metric], label=label)
     plt.title('Training and Validation Loss')
     plt.xlabel('Epoch')
-    plt.ylabel('Loss')
+    plt.ylabel('Accuracy') # ('Loss')
     plt.legend()
     if out_dir is not None:
         try:
@@ -437,16 +438,19 @@ if __name__ == '__main__':
     optimizer_bilstm = torch.optim.Adam(model_bilstm.parameters(), lr=2e-3, weight_decay=2e-4)
     scheduler_bilstm = torch.optim.lr_scheduler.StepLR(optimizer_bilstm, step_size=10, gamma=0.1)
 
+    
+
     # Train using Leave-One-Out Cross Validation (LOO) for LSTM
     print("Training LSTM Model with Leave-One-Out Cross Validation...")
     #train_loo(model_lstm, criterion, optimizer_lstm, scheduler_lstm, epochs=50, data_root='./24featuresDataset')
     train_loo(model_lstm, criterion, optimizer_lstm, None, 50)
+    '''
 
     # Train using Leave-One-Out Cross Validation (LOO) for BiLSTM
     print("\nTraining BiLSTM Model with Leave-One-Out Cross Validation...")
     #train_loo(model_bilstm, criterion, optimizer_bilstm, optim.lr_scheduler.StepLR, epochs=50, data_root='./24featuresDataset')
-    train_loo(model_bilstm, criterion, optimizer_bilstm, None, Epoch_num=2)
-  
+    train_loo(model_bilstm, criterion, optimizer_bilstm, None, Epoch_num=50)
+    '''
 
 
 

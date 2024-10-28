@@ -1,12 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Geometric transformations on 3D point cloud.
-Created on Wed Apr 10 11:00:00 2019
-Author: Prasun Roy | CVPRU-ISICAL (http://www.isical.ac.in/~cvpr)
-GitHub: https://github.com/prasunroy/sign-language
-
-"""
-
 
 import copy
 import math

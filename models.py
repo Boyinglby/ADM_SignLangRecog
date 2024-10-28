@@ -1,12 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Models.
-Created on Mon Apr 22 14:00:00 2019
-Author: Prasun Roy | CVPRU-ISICAL (http://www.isical.ac.in/~cvpr)
-GitHub: https://github.com/prasunroy/sign-language
-
-"""
-
 
 import torch.nn as nn
 import torch
